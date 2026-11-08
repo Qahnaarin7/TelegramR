@@ -28957,10 +28957,10 @@ index 0000000..e50471f
 +} // namespace Core
 diff --git a/Telegram/SourceFiles/core/mod_update.h b/Telegram/SourceFiles/core/mod_update.h
 new file mode 100644
-index 0000000..9ef2541
+index 0000000..596d0fe
 --- /dev/null
 +++ b/Telegram/SourceFiles/core/mod_update.h
-@@ -0,0 +1,171 @@
+@@ -0,0 +1,182 @@
 +#pragma once
 +
 +#include "core/application.h"
@@ -28982,12 +28982,12 @@ index 0000000..9ef2541
 +
 +namespace Core {
 +
-+inline constexpr auto ModVersionCode = 500;
-+inline const auto ModVersion = QStringLiteral("0.5.0");
++inline constexpr auto ModVersionCode = 501;
++inline const auto ModVersion = QStringLiteral("0.5.1");
 +
 +class ModUpdater final : public QObject {
 +public:
-+	ModUpdater(QObject *parent, Fn<void(QString)> status)
++	ModUpdater(QObject *parent, Fn<void(QString, QString)> status)
 +	: QObject(parent), _network(this), _status(std::move(status)) {
 +	}
 +
@@ -29007,9 +29007,19 @@ index 0000000..9ef2541
 +	}
 +
 +private:
++	QString actionText() const {
++		if (_busy) return _url.isValid() ? u"Завантаження…"_q : u"Перевірка…"_q;
++		if (!_ready.isEmpty()) return u"Установити оновлення"_q;
++		return _url.isValid() ? u"Завантажити оновлення"_q : u"Перевірити оновлення"_q;
++	}
++
++	void report(QString text) {
++		_status(std::move(text), actionText());
++	}
++
 +	QNetworkReply *get(const QUrl &url) {
 +		auto request = QNetworkRequest(url);
-+		request.setRawHeader("User-Agent", "TelegramR/0.5.0");
++		request.setRawHeader("User-Agent", "TelegramR/0.5.1");
 +		request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
 +		request.setTransferTimeout(30000);
 +		return _network.get(request);
@@ -29017,7 +29027,7 @@ index 0000000..9ef2541
 +
 +	void check() {
 +		_busy = true;
-+		_status(u"Перевіряю підписаний реліз…"_q);
++		report(u"Шукаю нову версію…"_q);
 +		const auto reply = get(QUrl(u"https://github.com/Qahnaarin7/TelegramR/releases/latest/download/telegramr-update.json"_q));
 +		const auto bytes = std::make_shared<QByteArray>();
 +		QObject::connect(reply, &QNetworkReply::readyRead, this, [=] {
@@ -29029,7 +29039,7 @@ index 0000000..9ef2541
 +			reply->deleteLater();
 +			bytes->append(reply->readAll());
 +			if (reply->error() != QNetworkReply::NoError || bytes->size() > 65536) {
-+				_status(u"Канал релізів недоступний. Можна спробувати ще раз."_q);
++				report(u"Оновлення зараз недоступні. Спробуйте пізніше."_q);
 +				return;
 +			}
 +			const auto envelope = QJsonDocument::fromJson(*bytes).object();
@@ -29038,7 +29048,7 @@ index 0000000..9ef2541
 +			const auto publicKey = QByteArray::fromHex("80c768148dd77cfc35e6b7349a1c34fcb3d954d0423d681d827e367bc5a40ba5");
 +			if (!ModCrypto::VerifyRelease(ModCrypto::Bytes(payload.begin(), payload.end()),
 +				ModCrypto::Bytes(signature.begin(), signature.end()), ModCrypto::Bytes(publicKey.begin(), publicKey.end()))) {
-+				_status(u"Підпис релізу недійсний. Оновлення відхилено."_q);
++				report(u"Не вдалося підтвердити справжність оновлення. Файл не буде встановлено."_q);
 +				return;
 +			}
 +			const auto data = QJsonDocument::fromJson(payload).object();
@@ -29050,27 +29060,28 @@ index 0000000..9ef2541
 +				|| size < 1024 || size > 512 * 1024 * 1024 || url.scheme() != u"https"_q
 +				|| url.host() != u"github.com"_q || !url.userInfo().isEmpty()
 +				|| !url.path().startsWith(u"/Qahnaarin7/TelegramR/releases/download/"_q) || !url.path().endsWith(u".exe"_q)) {
-+				_status(u"Некоректні дані релізу. Оновлення відхилено."_q);
++				report(u"Оновлення містить помилкові дані. Файл не буде встановлено."_q);
 +				return;
 +			}
 +			if (data[u"versionCode"_q].toInt() <= ModVersionCode) {
-+				_status(u"Встановлена актуальна версія TelegramR %1."_q.arg(ModVersion));
++				report(u"Встановлена актуальна версія TelegramR %1."_q.arg(ModVersion));
 +				return;
 +			}
 +			_url = url;
 +			_hash = hash;
 +			_size = size;
-+			_status(u"Доступна TelegramR %1. Натисни кнопку ще раз, щоб завантажити."_q.arg(data[u"version"_q].toString().left(24)));
++			report(u"Доступна версія %1. Натисніть «Завантажити оновлення»."_q.arg(data[u"version"_q].toString().left(24)));
 +		});
 +	}
 +
 +	void download() {
 +		const auto directory = QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + u"/TelegramR-updates"_q;
-+		if (!QDir().mkpath(directory)) { _status(u"Не вдалося створити каталог оновлення."_q); return; }
++		if (!QDir().mkpath(directory)) { report(u"Не вдалося створити каталог оновлення."_q); return; }
 +		const auto path = directory + u"/TelegramR-update-%1.exe"_q.arg(QString::fromLatin1(_hash.toHex()));
 +		const auto file = std::make_shared<QSaveFile>(path);
-+		if (!file->open(QIODevice::WriteOnly)) { _status(u"Не вдалося записати оновлення."_q); return; }
++		if (!file->open(QIODevice::WriteOnly)) { report(u"Не вдалося записати оновлення."_q); return; }
 +		_busy = true;
++		report(u"Завантажую оновлення…"_q);
 +		const auto reply = get(_url);
 +		const auto digest = std::make_shared<QCryptographicHash>(QCryptographicHash::Sha256);
 +		const auto total = std::make_shared<qint64>(0);
@@ -29084,45 +29095,45 @@ index 0000000..9ef2541
 +				return;
 +			}
 +			digest->addData(bytes);
-+			_status(u"Завантаження: %1%"_q.arg((*total * 100) / _size));
++			report(u"Завантаження: %1%"_q.arg((*total * 100) / _size));
 +		});
 +		QObject::connect(reply, &QNetworkReply::finished, this, [=] {
 +			_busy = false;
 +			reply->deleteLater();
 +			if (*failed || reply->error() != QNetworkReply::NoError || *total != _size || digest->result() != _hash || !file->commit()) {
 +				file->cancelWriting();
-+				_status(u"Завантаження або перевірка SHA-256 не вдалися. Спробуй ще раз."_q);
++				report(u"Не вдалося завантажити або перевірити файл. Спробуйте ще раз."_q);
 +				return;
 +			}
 +			_ready = path;
-+			_status(u"Файл перевірено. Натисни кнопку ще раз, щоб установити й перезапустити TelegramR."_q);
++			report(u"Оновлення готове. Натисніть «Установити оновлення». TelegramR перезапуститься."_q);
 +		});
 +	}
 +
 +	void launch(bool rollback) {
 +		const auto app = QCoreApplication::applicationDirPath();
 +		if (rollback && !QFileInfo::exists(app + u"/.telegramr-previous/TelegramR.exe"_q)) {
-+			_status(u"Попередньої версії ще немає. Вона збережеться після першого оновлення."_q);
++			report(u"Попередня версія ще не збережена. Вона з’явиться після першого оновлення."_q);
 +			return;
 +		}
 +		const auto temporary = QStandardPaths::writableLocation(QStandardPaths::TempLocation)
 +			+ u"/TelegramRUpdater-%1.exe"_q.arg(QCoreApplication::applicationPid());
 +		QFile::remove(temporary);
 +		if (!QFile::copy(app + u"/TelegramRUpdater.exe"_q, temporary)) {
-+			_status(u"Помічник оновлення недоступний. Перевстанови TelegramR інсталятором."_q);
++			report(u"Не вдалося підготувати оновлення. Скористайтеся звичайним інсталятором."_q);
 +			return;
 +		}
 +		const auto arguments = QStringList{ rollback ? u"--rollback"_q : u"--install"_q,
 +			_ready, app, QString::number(QCoreApplication::applicationPid()), QString::fromLatin1(_hash.toHex()) };
 +		if (!QProcess::startDetached(temporary, arguments, app)) {
-+			_status(u"Не вдалося запустити помічник оновлення."_q);
++			report(u"Не вдалося запустити помічник оновлення."_q);
 +			return;
 +		}
 +		Core::Quit();
 +	}
 +
 +	QNetworkAccessManager _network;
-+	Fn<void(QString)> _status;
++	Fn<void(QString, QString)> _status;
 +	bool _busy = false;
 +	QUrl _url;
 +	QByteArray _hash;
@@ -29133,7 +29144,7 @@ index 0000000..9ef2541
 +
 +}
 diff --git a/Telegram/SourceFiles/core/ui_integration.cpp b/Telegram/SourceFiles/core/ui_integration.cpp
-index f504a14..79f18cc 100644
+index f504a14..13b6e8e 100644
 --- a/Telegram/SourceFiles/core/ui_integration.cpp
 +++ b/Telegram/SourceFiles/core/ui_integration.cpp
 @@ -16,6 +16,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
@@ -29144,12 +29155,20 @@ index f504a14..79f18cc 100644
  #include "iv/iv_instance.h"
  #include "ui/text/text_custom_emoji.h"
  #include "ui/text/text_utilities.h"
-@@ -369,6 +370,15 @@ std::shared_ptr<ClickHandler> UiIntegration::createLinkHandler(
+@@ -357,6 +358,7 @@ std::shared_ptr<ClickHandler> UiIntegration::createLinkHandler(
+ 		const EntityLinkData &data,
+ 		const Ui::Text::MarkedContext &context) {
+ 	const auto my = std::any_cast<Core::TextContextDetails>(&context.other);
++	const auto revisionsPrefix = u"telegramr:revisions/"_q;
+ 	switch (data.type) {
+ 	case EntityType::Url:
+ 		if (data.data.startsWith(u"internal:"_q, Qt::CaseInsensitive)) {
+@@ -369,6 +371,15 @@ std::shared_ptr<ClickHandler> UiIntegration::createLinkHandler(
  			: Integration::createLinkHandler(data, context);
  
  	case EntityType::CustomUrl:
-+		if (my && my->session && data.data.startsWith(u"telegramr:revisions/"_q)) {
-+			const auto parts = data.data.mid(19).split('/');
++		if (my && my->session && data.data.startsWith(revisionsPrefix)) {
++			const auto parts = data.data.mid(revisionsPrefix.size()).split('/');
 +			if (parts.size() != 2) return nullptr;
 +			const auto id = FullMsgId(PeerId(parts[0].toULongLong()), MsgId(parts[1].toLongLong()));
 +			const auto weak = base::make_weak(my->session);
@@ -30458,7 +30477,7 @@ index e7de87c..4d00eb7 100644
  	const auto locked = Core::App().passcodeLocked();
  	const auto counter = settings.hideTotalUnread
 diff --git a/Telegram/SourceFiles/window/window_main_menu.cpp b/Telegram/SourceFiles/window/window_main_menu.cpp
-index db8dcec..ea90b90 100644
+index db8dcec..9936616 100644
 --- a/Telegram/SourceFiles/window/window_main_menu.cpp
 +++ b/Telegram/SourceFiles/window/window_main_menu.cpp
 @@ -9,6 +9,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
@@ -30517,11 +30536,10 @@ index db8dcec..ea90b90 100644
  #include "styles/style_chat.h" // popupMenuExpandedSeparator
  #include "styles/style_menu_icons.h"
  #include "styles/style_settings.h"
-@@ -87,6 +115,200 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
+@@ -87,6 +115,198 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
  namespace Window {
  namespace {
  
-+
 +QByteArray ModBackupPayload(not_null<Main::Session*> session) {
 +	auto settings = QJsonObject();
 +	for (const auto key : { Core::kModOffline, Core::kModUnread, Core::kModTyping, Core::kModDelay,
@@ -30598,7 +30616,7 @@ index db8dcec..ea90b90 100644
 +}
 +
 +void ModBackupBox(not_null<Ui::GenericBox*> box, not_null<Window::SessionController*> controller, bool restore) {
-+	box->setTitle(rpl::single(restore ? u"Імпорт резервної копії"_q : u"Експорт резервної копії"_q));
++	box->setTitle(rpl::single(restore ? u"Відновити налаштування"_q : u"Зберегти налаштування"_q));
 +	box->setWidth(460);
 +	box->addRow(object_ptr<Ui::FlatLabel>(box,
 +		u"Налаштування TelegramR і список улюблених наліпок. Сеанси входу, листування й архів не копіюються. Пароль — щонайменше 12 символів."_q, st::settingsExperimentalAbout));
@@ -30654,13 +30672,12 @@ index db8dcec..ea90b90 100644
 +	box->addButton(tr::lng_close(), [=] { box->closeBox(); });
 +}
 +
-+
 +void ModQueueBox(not_null<Ui::GenericBox*> box, not_null<Window::SessionController*> controller, not_null<PeerData*> peer) {
 +	box->setTitle(rpl::single(u"Відкладені · %1"_q.arg(peer->name())));
 +	box->setWidth(460);
 +	box->setMaxHeight(600);
 +	box->addRow(object_ptr<Ui::FlatLabel>(box,
-+		u"Текст і медіа з поточного чату, включно з ручним плануванням. Відлік починається після завантаження. Скасування діє, доки сервер ще не надіслав повідомлення."_q, st::settingsExperimentalAbout));
++		u"Тут повідомлення, які ще не відправлено. Натисніть «Скасувати надсилання», щоб їх не надсилати. Для медіа відлік починається після завантаження."_q, st::settingsExperimentalAbout));
 +	const auto summary = box->addRow(object_ptr<Ui::FlatLabel>(box, QString(), st::settingsExperimentalAbout));
 +	struct Row {
 +		Ui::FlatLabel *label = nullptr;
@@ -30718,7 +30735,7 @@ index db8dcec..ea90b90 100644
  constexpr auto kPlayStatusLimit = 2;
  
  [[nodiscard]] bool CanCheckSpecialEvent() {
-@@ -388,7 +610,7 @@ MainMenu::MainMenu(
+@@ -388,7 +608,7 @@ MainMenu::MainMenu(
  	parentResized();
  
  	_telegram->setMarkedText(tr::link(
@@ -30727,7 +30744,7 @@ index db8dcec..ea90b90 100644
  		u"https://desktop.telegram.org"_q));
  	_telegram->setLinksTrusted();
  	// The canary version is too long for the "Version {version}" form.
-@@ -774,6 +996,223 @@ void MainMenu::setupMenu() {
+@@ -774,6 +994,222 @@ void MainMenu::setupMenu() {
  		controller->showSettings();
  	});
  
@@ -30737,7 +30754,6 @@ index db8dcec..ea90b90 100644
 +		const auto more = addAction(
 +			rpl::single(uk ? u"Додатково"_q : u"More"_q),
 +			{ &st::menuIconSettings });
-+
 +
 +		const auto statusChanges = std::make_shared<rpl::event_stream<QString>>();
 +		const auto activity = AddButtonWithIcon(_menu,
@@ -30761,6 +30777,7 @@ index db8dcec..ea90b90 100644
 +				if (weakActivity) statusChanges->fire(u"Недоступно"_q);
 +			}).send();
 +		};
++		activity->setToolTip(u"Ваша остання активність за даними Telegram. Натисніть, щоб оновити."_q);
 +		activity->setClickedCallback(checkActivity);
 +		checkActivity();
 +
@@ -30827,7 +30844,7 @@ index db8dcec..ea90b90 100644
 +					changes->fire({});
 +				}, modMenu->lifetime());
 +
-+				describe(u"Онлайн, прочитання, дії та затримка — разом."_q);
++				describe(u"Разом вмикає приховування онлайну, читання й дій та затримку 12 с."_q);
 +				const auto addToggle = [&](const char *key, QString title, QString description, const style::icon &icon) {
 +					addModAction(
 +						rpl::single(std::move(title)),
@@ -30842,31 +30859,28 @@ index db8dcec..ea90b90 100644
 +					}, modMenu->lifetime());
 +					describe(std::move(description));
 +				};
-+				addToggle(Core::kModOffline, u"Приховувати онлайн"_q, u"Не надсилати статус «в мережі» з TelegramR."_q, st::menuIconWhenOnline);
-+				addToggle(Core::kModUnread, u"Нечиталка"_q, u"Без автоматичного прочитання. Вручну — «Прочитати»."_q, st::menuIconMarkRead);
-+				addToggle(Core::kModTyping, u"Приховувати дії"_q, u"Без «друкує», запису голосового й прогресу медіа."_q, st::menuIconEdit);
-+				addToggle(Core::kModDelay, u"Без онлайну · 12 с"_q, u"Сервер надсилає через 12 с після завантаження."_q, st::menuIconSchedule);
-+				addToggle(Core::kModSilent, u"Надсилати без звуку"_q, u"Прибирає звук; сповіщення й позначка можуть лишитися."_q, st::menuIconSilent);
-+				describe(u"Інші відкриті клієнти можуть показувати онлайн."_q);
-+				section(u"Локальні дані"_q);
-+				addToggle(Core::kModDeleted, u"Зберігати видалені"_q, u"Отриманий текст залишається після видалення."_q, st::menuIconDelete);
-+				addToggle(Core::kModEdited, u"Історія редагувань"_q, u"Попередній текст — у «Редакції: N» у повідомленні."_q, st::menuIconEdit);
-+				addToggle(Core::kModObserved, u"Локальна активність"_q, u"Оцінка за отриманими діями, не прихований онлайн."_q, st::menuIconProfile);
-+
-+
-+
++				addToggle(Core::kModOffline, u"Приховувати онлайн"_q, u"Приховує ваш статус «у мережі» під час користування TelegramR."_q, st::menuIconWhenOnline);
++				addToggle(Core::kModUnread, u"Нечиталка"_q, u"Співрозмовник не бачить, що ви прочитали повідомлення."_q, st::menuIconMarkRead);
++				addToggle(Core::kModTyping, u"Приховувати дії"_q, u"Приховує набір тексту, запис голосових і завантаження файлів."_q, st::menuIconEdit);
++				addToggle(Core::kModDelay, u"Без онлайну · 12 с"_q, u"Затримує надсилання на 12 с, щоб ви не з’являлися онлайн. Медіа — через 12 с після завантаження."_q, st::menuIconSchedule);
++				addToggle(Core::kModSilent, u"Надсилати без звуку"_q, u"Сповіщення прийде без звуку. Позначка «без звуку» у співрозмовника може залишитися."_q, st::menuIconSilent);
++				describe(u"Інший відкритий Telegram може показувати вас у мережі."_q);
++				section(u"Історія в чатах"_q);
++				addToggle(Core::kModDeleted, u"Зберігати видалені"_q, u"Залишає в чаті копію тексту після видалення повідомлення."_q, st::menuIconDelete);
++				addToggle(Core::kModEdited, u"Історія редагувань"_q, u"Зберігає старий текст. Натисніть «Редакції» в повідомленні, щоб переглянути."_q, st::menuIconEdit);
++				addToggle(Core::kModObserved, u"Помічена активність"_q, u"Показує час останнього повідомлення або правки, коли онлайн людини приховано. Це не точний час входу."_q, st::menuIconProfile);
 +
 +				if (const auto peer = controller->activeChatCurrent().peer()) {
-+					section(u"Поточний чат"_q);
++					section(u"Для цього чату"_q);
 +					addModAction(rpl::single(u"Черга надсилання"_q), { &st::menuIconSettings })->setClickedCallback([=] {
 +						controller->show(Box(ModQueueBox, controller, peer));
 +					});
-+					describe(u"Винятки для чату «%1». Застосовуються в усіх акаунтах на цьому ПК; режим онлайн залишається спільним."_q.arg(peer->name()));
++					describe(u"Правила для чату «%1», спільні для всіх ваших акаунтів на цьому ПК. «Як у загальних» використовує перемикачі вище."_q.arg(peer->name()));
 +					const auto chatToggle = [&](const char *key, QString title) {
 +						const auto ruleChanges = std::make_shared<rpl::event_stream<QString>>();
 +						const auto titleText = [=] {
 +							const auto value = Core::ModChatRule(key, peer->id.value);
-+							return title + u": "_q + (value < 0 ? u"як усюди"_q : value ? u"увімкнено"_q : u"вимкнено"_q);
++							return title + u": "_q + (value < 0 ? u"як у загальних"_q : value ? u"увімкнено"_q : u"вимкнено"_q);
 +						};
 +						addModAction(ruleChanges->events_starting_with(titleText()), { &st::menuIconSettings })->setClickedCallback([=] {
 +							const auto value = Core::ModChatRule(key, peer->id.value);
@@ -30877,12 +30891,12 @@ index db8dcec..ea90b90 100644
 +					chatToggle("unread", u"Нечиталка"_q);
 +					chatToggle("delay", u"Затримка"_q);
 +					chatToggle("silent", u"Без звуку"_q);
-+					describe(u"Натискай для зміни. Виняток із нечиталки також скасовує автоматичну затримку в цьому чаті."_q);
++					describe(u"Натискайте, щоб змінити правило. Якщо дозволити прочитання, затримка 12 с у цьому чаті теж вимкнеться."_q);
 +				}
 +
-+				addModAction(rpl::single(u"Пошук в архіві"_q), { &st::menuIconSettings })->setClickedCallback([=] {
++				addModAction(rpl::single(u"Збережені тексти"_q), { &st::menuIconSettings })->setClickedCallback([=] {
 +					controller->show(Box([=](not_null<Ui::GenericBox*> archive) {
-+						archive->setTitle(rpl::single(u"Локальний архів"_q));
++						archive->setTitle(rpl::single(u"Збережені тексти"_q));
 +						archive->setWidth(500);
 +						archive->setMaxHeight(620);
 +						const auto input = archive->addRow(object_ptr<Ui::InputField>(archive, st::defaultInputField, rpl::single(u"Текст або назва чату"_q)));
@@ -30894,7 +30908,7 @@ index db8dcec..ea90b90 100644
 +						archive->addButton(tr::lng_close(), [=] { archive->closeBox(); });
 +					}));
 +				});
-+				describe(u"Зашифровано на цьому ПК: до 2000 повідомлень і 8 редакцій кожного."_q);
++				describe(u"Знайти текст видалених повідомлень і старі редакції, збережені на цьому ПК."_q);
 +				const auto retention = std::make_shared<rpl::event_stream<QString>>();
 +				const auto retentionText = [] {
 +					const QSettings settings(cWorkingDir() + u"mod-settings.ini"_q, QSettings::IniFormat);
@@ -30906,25 +30920,23 @@ index db8dcec..ea90b90 100644
 +					settings.setValue(u"archiveRetentionDays"_q, days == 30 ? 90 : days == 90 ? 365 : 30);
 +					retention->fire(retentionText());
 +				});
-+				describe(u"Натискай для зміни: 30, 90 або 365 днів."_q);
-+				addModAction(rpl::single(u"Очистити архів"_q), { &st::menuIconSettings })->setClickedCallback([=] {
++				describe(u"Через цей час старі збережені копії прибираються. Натисніть, щоб змінити строк."_q);
++				addModAction(rpl::single(u"Очистити збережене"_q), { &st::menuIconSettings })->setClickedCallback([=] {
 +					controller->show(Ui::MakeConfirmBox({
-+						.text = rpl::single(u"Видалити збережені тексти й редакції для цього акаунта? Цю дію не можна скасувати."_q),
++						.text = rpl::single(u"Очистити збережені копії текстів для цього акаунта? Повідомлення в Telegram залишаться. Відновити ці копії буде неможливо."_q),
 +						.confirmed = [=](Fn<void()> close) { Data::Mod::ClearArchive(&session->data()); close(); },
 +						.confirmText = rpl::single(u"Очистити"_q),
 +					}));
 +				});
 +
-+
-+				section(u"Сервіс"_q);
-+				addToggle(Core::kModScheduledAlerts, u"Мої нагадування"_q, u"Сповіщення про власні відкладені лише на цьому ПК."_q, st::menuIconNotifications);
++				section(u"Інші налаштування"_q);
++				addToggle(Core::kModScheduledAlerts, u"Нагадувати про відправку"_q, u"Сповіщає, коли відправлено ваше відкладене повідомлення. Телефон налаштовується окремо."_q, st::menuIconNotifications);
 +				for (const auto restore : { false, true }) {
-+					addModAction(rpl::single(restore ? u"Імпорт резервної копії"_q : u"Експорт резервної копії"_q), { &st::menuIconSettings })->setClickedCallback([=] {
++					addModAction(rpl::single(restore ? u"Відновити налаштування"_q : u"Зберегти налаштування"_q), { &st::menuIconSettings })->setClickedCallback([=] {
 +						controller->show(Box(ModBackupBox, controller, restore));
 +					});
 +				}
-+				describe(u"Файл з паролем: налаштування й наліпки, без сеансів входу."_q);
-+
++				describe(u"Переносить налаштування й улюблені наліпки на інший ПК. Вхід в акаунт не копіюється."_q);
 +
 +				addModAction(rpl::single(u"Оновлення TelegramR"_q), { &st::menuIconSettings })->setClickedCallback([=] {
 +					controller->show(Box([=](not_null<Ui::GenericBox*> update) {
@@ -30932,16 +30944,20 @@ index db8dcec..ea90b90 100644
 +						update->setWidth(460);
 +						update->setMaxHeight(560);
 +						const auto status = update->addRow(object_ptr<Ui::FlatLabel>(update,
-+							u"Власні релізи Qahnaarin7/TelegramR. Підпис Ed25519 і SHA-256 перевіряються перед установленням; попередня програма зберігається для відкату. Профіль не замінюється."_q, st::settingsExperimentalAbout));
-+						const auto updater = new Core::ModUpdater(update, [=](QString text) { status->setText(std::move(text)); });
-+						Settings::AddButtonWithIcon(update->verticalLayout(), rpl::single(u"Перевірити / продовжити"_q), st::settingsButton,
++							u"Шукає нову версію TelegramR. Оновлення зберігає ваші акаунти й чати. Попередню версію можна повернути."_q, st::settingsExperimentalAbout));
++						const auto actionNames = std::make_shared<rpl::event_stream<QString>>();
++						const auto updater = new Core::ModUpdater(update, [=](QString text, QString action) {
++							status->setText(std::move(text));
++							actionNames->fire(std::move(action));
++						});
++						Settings::AddButtonWithIcon(update->verticalLayout(), actionNames->events_starting_with(u"Перевірити оновлення"_q), st::settingsButton,
 +							{ &st::menuIconRestore })->setClickedCallback([=] { updater->activate(); });
-+						Settings::AddButtonWithIcon(update->verticalLayout(), rpl::single(u"Відкотити попередню версію"_q), st::settingsButton,
++						Settings::AddButtonWithIcon(update->verticalLayout(), rpl::single(u"Повернути попередню версію"_q), st::settingsButton,
 +							{ &st::menuIconRestore })->setClickedCallback([=] { updater->rollback(); });
 +						update->addButton(tr::lng_close(), [=] { update->closeBox(); });
 +					}));
 +				});
-+				describe(u"Підписані релізи TelegramR; інтеграція Telegram/AyuGram — після перевірки."_q);
++				describe(u"Знайти нову версію TelegramR або повернути попередню."_q);
 +
 +				box->addButton(tr::lng_close(), [=] { box->closeBox(); });
 +			}));
