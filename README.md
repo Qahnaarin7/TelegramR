@@ -1,5 +1,7 @@
 # TelegramR
 
+**English.** TelegramR is an unofficial Telegram Desktop client for Windows x64 that runs alongside the official app with its own profile. Version 0.5.1 adds ghost mode toggles, delayed and silent sending, per-chat exceptions, an encrypted local archive of deleted and edited messages, settings backup, and verified updates with rollback (Ed25519-signed manifest, SHA-256 check). This repository holds the release channel and a cumulative source patch on top of Telegram Desktop v7.3.5. Built with MSVC 14.44, static Qt 6.11.2 and OpenSSL 3.5.9. License: GPL-3.0.
+
 Неофіційний клієнт Telegram Desktop для Windows x64.
 
 [Завантажити останній реліз](https://github.com/Qahnaarin7/TelegramR/releases/latest).
