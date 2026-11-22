@@ -1,45 +1,30 @@
 # TelegramR
 
-**English.** TelegramR is an unofficial Telegram Desktop client for Windows x64 that runs alongside the official app with its own profile. Version 0.5.1 adds ghost mode toggles, delayed and silent sending, per-chat exceptions, an encrypted local archive of deleted and edited messages, settings backup, and verified updates with rollback (Ed25519-signed manifest, SHA-256 check). This repository holds the release channel and a cumulative source patch on top of Telegram Desktop v7.3.5. Built with MSVC 14.44, static Qt 6.11.2 and OpenSSL 3.5.9. License: GPL-3.0.
+TelegramR is an unofficial Telegram Desktop client for Windows x64. It runs alongside the official app using its own profile. The installer adds a Start menu shortcut and offers a desktop shortcut.
 
-Неофіційний клієнт Telegram Desktop для Windows x64.
+[Download the latest Windows installer](https://github.com/Qahnaarin7/TelegramR/releases/latest)
 
-[Завантажити останній реліз](https://github.com/Qahnaarin7/TelegramR/releases/latest).
-Профіль TelegramR окремий; клієнт працює паралельно офіційному Telegram.
-Інсталятор створює ярлики у «Пуск» і на робочому столі.
+## Features
 
-У версії 0.5.1: компактне вікно «Додатково», перемикачі невидимки,
-серверне надсилання через 12 секунд, тихе надсилання, винятки для чатів,
-зашифрований текстовий архів видалень/редакцій, пошук, резервна копія
-налаштувань і улюблених наліпок, перевірені оновлення та відкат.
-Час власної активності запитується в Telegram. Панель задач — синє коло з R;
-трей — окремий чорно-білий значок з R, адаптивний до теми Windows.
+- **Ghost mode:** separate controls for online presence, read receipts, and typing or recording indicators.
+- **Sending:** optional 12-second delay for text and supported media, silent sending, a queue with cancellation, and per-chat overrides.
+- **Local history:** an encrypted, searchable archive for received text from deleted messages and earlier edits. Expand earlier versions inside the message bubble.
+- **Stickers and backups:** local favorite stickers and encrypted backups of settings and the favorites list.
+- **Activity and Windows integration:** own activity time when Telegram provides it, a blue taskbar icon, and a separate tray icon that adapts to the Windows theme.
+- **Updates:** checks for signed TelegramR releases, rollback, and a manual check of the latest official Telegram Desktop version.
 
-Тихе надсилання прибирає звук, а не гарантує відсутність сповіщення.
-Нагадування офіційного клієнта на телефоні керуються окремо.
-Архів зберігає лише отриманий текст; самознищувані медіа не відновлюються.
-Інші клієнти можуть показувати онлайн незалежно від TelegramR.
+Silent sending delivers a notification without sound. Other Telegram clients manage their own reminders and online presence. The local archive covers text received by TelegramR.
 
-## Вихідний код
+## Source and build
 
-Цей репозиторій містить канал релізів і кумулятивний патч модифікацій.
-База: [Telegram Desktop](https://github.com/telegramdesktop/tdesktop),
-ревізія `3a2a9a34e833d3243a13787215b8a7cdcf5dc3c3` (v7.3.5).
+TelegramR 0.5.2 is based on Telegram Desktop v7.4.4, commit `bf4f714036f21c750d535dab199c811b3f9bfdd4`. Clone the upstream repository, check out that commit, initialize its submodules, and apply the cumulative patch with `git apply TelegramR-source.patch`. The matching release source archive includes the patch, the Windows installer recipe, the updater helper source, and build instructions.
 
-Клонуйте базу з підмодулями, перейдіть на зазначену ревізію та застосуйте
-`git apply TelegramR-source.patch` у корені клону. Патч містить код, іконки
-та Windows-виправлення збирання. Повний пакет модифікацій, джерело нативного
-помічника оновлення, рецепт інсталятора й інструкції — у
-`TelegramR-source-0.5.1.zip` серед файлів релізу.
+Use MSVC 14.44, static Qt 6.11.2, OpenSSL 3.5.9, and Ninja Multi-Config. Configure a Windows x64 Release build with your own Telegram API credentials and `DESKTOP_APP_DISABLE_AUTOUPDATE=ON`.
 
-Збірка: MSVC 14.44, статична Qt 6.11.2, OpenSSL 3.5.9, Ninja Multi-Config,
-Release x64. Використовуйте власні Telegram API-реквізити та
-`DESKTOP_APP_DISABLE_AUTOUPDATE=ON`. Ліцензія GPL-3.0; див. LICENSE і LEGAL.
+[Upstream source](https://github.com/telegramdesktop/tdesktop/tree/v7.4.4) · [TelegramR releases](https://github.com/Qahnaarin7/TelegramR/releases)
 
-## Оновлення
+## Updates and license
 
-TelegramR перевіряє Ed25519-підпис маніфесту `telegramr-update.json`, SHA-256
-і розмір інсталятора. Приватний ключ підпису, сеанси входу та файли профілю
-не публікуються. Зміни Telegram/AyuGram спочатку інтегруються й перевіряються
-для наступного релізу TelegramR; автоматичного злиття вихідного коду немає.
-У 0.5.1 виправлено відкриття редакцій, уточнено назви дій оновлення та спрощено описи функцій для нових користувачів.
+TelegramR verifies an Ed25519-signed release manifest and checks the installer’s SHA-256 and size before installation. The official version check shows the upstream release and compares it with the version used by TelegramR. Upstream changes are integrated into a new TelegramR build.
+
+Licensed under GPL-3.0. See LICENSE and LEGAL for details.
