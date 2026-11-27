@@ -17,11 +17,11 @@ Silent sending delivers a notification without sound. Other Telegram clients man
 
 ## Source and build
 
-TelegramR 0.5.2 is based on Telegram Desktop v7.4.4, commit `bf4f714036f21c750d535dab199c811b3f9bfdd4`. Clone the upstream repository, check out that commit, initialize its submodules, and apply the cumulative patch with `git apply TelegramR-source.patch`. The matching release source archive includes the patch, the Windows installer recipe, the updater helper source, and build instructions.
+TelegramR 0.5.3 is based on Telegram Desktop v7.4.7, commit `85d55638476185e9af32aac888371ef9da06cfb9`. Clone the upstream repository, check out that commit, initialize its submodules, and apply the cumulative patch with `git apply TelegramR-source.patch`. The matching release source archive includes the patch, the Windows installer recipe, the updater helper source, and build instructions.
 
 Use MSVC 14.44, static Qt 6.11.2, OpenSSL 3.5.9, and Ninja Multi-Config. Configure a Windows x64 Release build with your own Telegram API credentials and `DESKTOP_APP_DISABLE_AUTOUPDATE=ON`.
 
-[Upstream source](https://github.com/telegramdesktop/tdesktop/tree/v7.4.4) · [TelegramR releases](https://github.com/Qahnaarin7/TelegramR/releases)
+[Upstream source](https://github.com/telegramdesktop/tdesktop/tree/v7.4.7) · [TelegramR releases](https://github.com/Qahnaarin7/TelegramR/releases)
 
 ## Updates and license
 

@@ -1,8 +1,8 @@
 diff --git a/Telegram/CMakeLists.txt b/Telegram/CMakeLists.txt
-index 1601b50..3da3641 100644
+index dfeae445..8e86af3d 100644
 --- a/Telegram/CMakeLists.txt
 +++ b/Telegram/CMakeLists.txt
-@@ -2918,6 +2918,7 @@ if (MSVC)
+@@ -3067,6 +3067,7 @@ if (MSVC)
      target_link_libraries(Telegram
      PRIVATE
          delayimp
@@ -10,7 +10,7 @@ index 1601b50..3da3641 100644
      )
      target_link_options(Telegram
      PRIVATE
-@@ -3024,6 +3025,7 @@ if (NOT DESKTOP_APP_DISABLE_AUTOUPDATE AND NOT build_macstore AND NOT build_wins
+@@ -3201,6 +3202,7 @@ if (NOT DESKTOP_APP_DISABLE_AUTOUPDATE AND NOT build_macstore AND NOT build_wins
              target_link_libraries(Updater
              PRIVATE
                  delayimp
@@ -28243,7 +28243,7 @@ literal 0
 HcmV?d00001
 
 diff --git a/Telegram/Resources/winrc/Telegram.rc b/Telegram/Resources/winrc/Telegram.rc
-index 8bf0147..4ffb6aa 100644
+index 7dc032c5..028e91c1 100644
 --- a/Telegram/Resources/winrc/Telegram.rc
 +++ b/Telegram/Resources/winrc/Telegram.rc
 @@ -60,11 +60,11 @@ BEGIN
@@ -28254,15 +28254,15 @@ index 8bf0147..4ffb6aa 100644
 -            VALUE "FileDescription", "Telegram Desktop"
 +            VALUE "CompanyName", "TelegramR contributors"
 +            VALUE "FileDescription", "TelegramR (Unofficial)"
-             VALUE "FileVersion", "7.4.4.0"
+             VALUE "FileVersion", "7.4.7.0"
              VALUE "LegalCopyright", "Copyright (C) 2014-2026"
 -            VALUE "ProductName", "Telegram Desktop"
 +            VALUE "ProductName", "TelegramR"
-             VALUE "ProductVersion", "7.4.4.0"
+             VALUE "ProductVersion", "7.4.7.0"
          END
      END
 diff --git a/Telegram/SourceFiles/api/api_common.cpp b/Telegram/SourceFiles/api/api_common.cpp
-index 9e86c94..806a14f 100644
+index 9e86c94a..806a14f3 100644
 --- a/Telegram/SourceFiles/api/api_common.cpp
 +++ b/Telegram/SourceFiles/api/api_common.cpp
 @@ -6,6 +6,7 @@ For license and copyright information please follow this link:
@@ -28282,7 +28282,7 @@ index 9e86c94..806a14f 100644
  
  SendOptions DefaultSendWhenOnlineOptions() {
 diff --git a/Telegram/SourceFiles/api/api_common.h b/Telegram/SourceFiles/api/api_common.h
-index 82b21c9..02323a1 100644
+index 82b21c9b..02323a18 100644
 --- a/Telegram/SourceFiles/api/api_common.h
 +++ b/Telegram/SourceFiles/api/api_common.h
 @@ -33,6 +33,7 @@ struct SendOptions {
@@ -28295,7 +28295,7 @@ index 82b21c9..02323a1 100644
  	bool hideViaBot = false;
 diff --git a/Telegram/SourceFiles/api/api_mod_delay.h b/Telegram/SourceFiles/api/api_mod_delay.h
 new file mode 100644
-index 0000000..5526fbb
+index 00000000..5526fbb8
 --- /dev/null
 +++ b/Telegram/SourceFiles/api/api_mod_delay.h
 @@ -0,0 +1,55 @@
@@ -28355,7 +28355,7 @@ index 0000000..5526fbb
 +
 +} // namespace Api
 diff --git a/Telegram/SourceFiles/api/api_send_progress.cpp b/Telegram/SourceFiles/api/api_send_progress.cpp
-index 206520e..ead7cb1 100644
+index 5bf904a8..62ded248 100644
 --- a/Telegram/SourceFiles/api/api_send_progress.cpp
 +++ b/Telegram/SourceFiles/api/api_send_progress.cpp
 @@ -109,7 +109,9 @@ bool SendProgressManager::updated(const Key &key, bool doing) {
@@ -28370,7 +28370,7 @@ index 206520e..ead7cb1 100644
  	}
  	using Type = SendProgressType;
 diff --git a/Telegram/SourceFiles/api/api_sending.cpp b/Telegram/SourceFiles/api/api_sending.cpp
-index b2c03b3..09cfe72 100644
+index 79d184be..ace60631 100644
 --- a/Telegram/SourceFiles/api/api_sending.cpp
 +++ b/Telegram/SourceFiles/api/api_sending.cpp
 @@ -6,6 +6,7 @@ For license and copyright information please follow this link:
@@ -28380,7 +28380,7 @@ index b2c03b3..09cfe72 100644
 +#include "api/api_mod_delay.h"
  
  #include "api/api_text_entities.h"
- #include "base/random.h"
+ #include "apiwrap.h"
 @@ -177,7 +178,7 @@ void SendSimpleMedia(SendAction action, MTPInputMedia inputMedia) {
  			MTP_long(randomId),
  			MTPReplyMarkup(),
@@ -28417,7 +28417,7 @@ index b2c03b3..09cfe72 100644
  				(sendAs ? sendAs->input() : MTP_inputPeerEmpty()),
  				Data::ShortcutIdToMTP(session, action.options.shortcutId),
  				MTP_long(action.options.effectId),
-@@ -923,7 +924,7 @@ bool SendDice(MessageToSend &message) {
+@@ -927,7 +928,7 @@ bool SendDice(MessageToSend &message) {
  			MTP_long(randomId),
  			MTPReplyMarkup(),
  			MTP_vector<MTPMessageEntity>(),
@@ -28427,7 +28427,7 @@ index b2c03b3..09cfe72 100644
  			(sendAs ? sendAs->input() : MTP_inputPeerEmpty()),
  			Data::ShortcutIdToMTP(session, action.options.shortcutId),
 diff --git a/Telegram/SourceFiles/api/api_toggling_media.cpp b/Telegram/SourceFiles/api/api_toggling_media.cpp
-index 6c28df1..0c287ae 100644
+index 68459a10..03eab722 100644
 --- a/Telegram/SourceFiles/api/api_toggling_media.cpp
 +++ b/Telegram/SourceFiles/api/api_toggling_media.cpp
 @@ -66,6 +66,10 @@ void ToggleFavedSticker(
@@ -28442,10 +28442,10 @@ index 6c28df1..0c287ae 100644
  		document->owner().stickers().setFaved(show, document, faved);
  	};
 diff --git a/Telegram/SourceFiles/api/api_updates.cpp b/Telegram/SourceFiles/api/api_updates.cpp
-index ac5b5e1..0ba211a 100644
+index fa4536dd..a16f0424 100644
 --- a/Telegram/SourceFiles/api/api_updates.cpp
 +++ b/Telegram/SourceFiles/api/api_updates.cpp
-@@ -1001,7 +1001,8 @@ void Updates::updateOnline(crl::time lastNonIdleTime, bool gotOtherOffline) {
+@@ -1082,7 +1082,8 @@ void Updates::updateOnline(crl::time lastNonIdleTime, bool gotOtherOffline) {
  	});
  
  	const auto &config = _session->serverConfig();
@@ -28456,7 +28456,7 @@ index ac5b5e1..0ba211a 100644
  	Assert(updateIn >= 0);
  	if (isOnline) {
 diff --git a/Telegram/SourceFiles/apiwrap.cpp b/Telegram/SourceFiles/apiwrap.cpp
-index 0cbc7b9..0c160aa 100644
+index 41012e15..31cf95ed 100644
 --- a/Telegram/SourceFiles/apiwrap.cpp
 +++ b/Telegram/SourceFiles/apiwrap.cpp
 @@ -5,7 +5,9 @@ the official desktop application for the Telegram messaging service.
@@ -28467,9 +28467,9 @@ index 0cbc7b9..0c160aa 100644
  #include "apiwrap.h"
 +#include "api/api_mod_delay.h"
  
- #include "api/api_authorizations.h"
  #include "api/api_attached_stickers.h"
-@@ -169,9 +171,16 @@ void ShowChannelsLimitBox(not_null<PeerData*> peer) {
+ #include "api/api_authorizations.h"
+@@ -171,9 +173,16 @@ void ShowChannelsLimitBox(not_null<PeerData*> peer) {
  
  [[nodiscard]] FileLoadTo FileLoadTaskOptions(const Api::SendAction &action) {
  	const auto peer = action.history->peer;
@@ -28487,7 +28487,7 @@ index 0cbc7b9..0c160aa 100644
  		action.replyTo,
  		action.replaceMediaOf);
  }
-@@ -3361,6 +3370,9 @@ void ApiWrap::requestRecentStickers(
+@@ -3384,6 +3393,9 @@ void ApiWrap::requestRecentStickers(
  }
  
  void ApiWrap::requestFavedStickers(std::optional<TimeId> now) {
@@ -28497,7 +28497,7 @@ index 0cbc7b9..0c160aa 100644
  	if (now) {
  		if (!_session->data().stickers().favedUpdateNeeded(*now)
  			|| _favedStickersUpdateRequest) {
-@@ -3874,23 +3886,31 @@ mtpRequestId ApiWrap::requestGlobalMedia(
+@@ -3897,23 +3909,31 @@ mtpRequestId ApiWrap::requestGlobalMedia(
  }
  
  void ApiWrap::sendAction(const SendAction &action) {
@@ -28543,7 +28543,7 @@ index 0cbc7b9..0c160aa 100644
  		}
  		action.history->getReadyFor(ShowAtTheEndMsgId);
  	}
-@@ -3988,7 +4008,9 @@ FullMsgId ApiWrap::forwardMessages(
+@@ -4011,7 +4031,9 @@ FullMsgId ApiWrap::forwardMessages(
  	const auto history = action.history;
  	const auto peer = history->peer;
  
@@ -28554,7 +28554,7 @@ index 0cbc7b9..0c160aa 100644
  		histories.readInbox(history);
  	}
  	const auto sendAs = action.options.sendAs;
-@@ -4099,7 +4121,7 @@ FullMsgId ApiWrap::forwardMessages(
+@@ -4122,7 +4144,7 @@ FullMsgId ApiWrap::forwardMessages(
  					? MTP_inputReplyToMonoForum(
  						monoforumPeer->input())
  					: MTPInputReplyTo()),
@@ -28563,8 +28563,8 @@ index 0cbc7b9..0c160aa 100644
  				MTP_int(action.options.scheduleRepeatPeriod),
  				(sendAs
  					? sendAs->input()
-@@ -4310,7 +4332,14 @@ void ApiWrap::sendVoiceMessage(
- 		bool video,
+@@ -4336,7 +4358,14 @@ void ApiWrap::sendVoiceMessage(
+ 		std::shared_ptr<Media::Encode::VideoSource> videoSource,
  		const SendAction &action) {
  	const auto caption = TextWithTags();
 -	const auto to = FileLoadTaskOptions(action);
@@ -28579,7 +28579,7 @@ index 0cbc7b9..0c160aa 100644
  	_fileLoader->addTask(
  		std::make_unique<FileLoadTask>(FileLoadTask::VoiceArgs{
  			.session = &session(),
-@@ -4370,6 +4399,14 @@ void ApiWrap::sendFiles(
+@@ -4398,6 +4427,14 @@ void ApiWrap::sendFiles(
  		SendMediaType type,
  		std::shared_ptr<SendingAlbum> album,
  		SendAction action) {
@@ -28594,7 +28594,7 @@ index 0cbc7b9..0c160aa 100644
  	const auto &ephemeral = _session->ephemeralMessages();
  	if (album && !ephemeral.isEphemeralBotReply(action.replyTo.messageId)) {
  		const auto peer = action.history->peer;
-@@ -4736,7 +4773,7 @@ void ApiWrap::sendRichMessage(
+@@ -4764,7 +4801,7 @@ void ApiWrap::sendRichMessage(
  				MTP_long(randomId),
  				MTPReplyMarkup(),
  				MTPVector<MTPMessageEntity>(),
@@ -28603,7 +28603,7 @@ index 0cbc7b9..0c160aa 100644
  				MTP_int(action.options.scheduleRepeatPeriod),
  				(action.options.sendAs
  					? action.options.sendAs->input()
-@@ -5047,7 +5084,7 @@ void ApiWrap::sendMessage(
+@@ -5077,7 +5114,7 @@ void ApiWrap::sendMessage(
  					MTP_long(randomId),
  					MTPReplyMarkup(),
  					sentEntities,
@@ -28612,7 +28612,7 @@ index 0cbc7b9..0c160aa 100644
  					MTP_int(action.options.scheduleRepeatPeriod),
  					(sendAs ? sendAs->input() : MTP_inputPeerEmpty()),
  					mtpShortcut,
-@@ -5068,7 +5105,7 @@ void ApiWrap::sendMessage(
+@@ -5098,7 +5135,7 @@ void ApiWrap::sendMessage(
  					MTP_long(randomId),
  					MTPReplyMarkup(),
  					sentEntities,
@@ -28621,7 +28621,7 @@ index 0cbc7b9..0c160aa 100644
  					MTP_int(action.options.scheduleRepeatPeriod),
  					(sendAs ? sendAs->input() : MTP_inputPeerEmpty()),
  					mtpShortcut,
-@@ -5217,7 +5254,7 @@ void ApiWrap::sendInlineResult(
+@@ -5247,7 +5284,7 @@ void ApiWrap::sendInlineResult(
  			MTP_long(randomId),
  			MTP_long(data->getQueryId()),
  			MTP_string(data->getId()),
@@ -28630,7 +28630,7 @@ index 0cbc7b9..0c160aa 100644
  			(sendAs ? sendAs->input() : MTP_inputPeerEmpty()),
  			Data::ShortcutIdToMTP(_session, action.options.shortcutId),
  			MTP_long(starsPaid)
-@@ -5378,6 +5415,7 @@ void ApiWrap::sendMediaWithRandomId(
+@@ -5408,6 +5445,7 @@ void ApiWrap::sendMediaWithRandomId(
  	const auto history = item->history();
  	const auto replyTo = item->replyTo();
  	const auto peer = history->peer;
@@ -28638,7 +28638,7 @@ index 0cbc7b9..0c160aa 100644
  
  	if (_session->ephemeralMessages().sendMedia(item, media)) {
  		if (done) {
-@@ -5440,7 +5478,7 @@ void ApiWrap::sendMediaWithRandomId(
+@@ -5470,7 +5508,7 @@ void ApiWrap::sendMediaWithRandomId(
  			MTP_long(randomId),
  			MTPReplyMarkup(),
  			sentEntities,
@@ -28647,7 +28647,7 @@ index 0cbc7b9..0c160aa 100644
  			MTP_int(options.scheduleRepeatPeriod),
  			(options.sendAs ? options.sendAs->input() : MTP_inputPeerEmpty()),
  			Data::ShortcutIdToMTP(_session, options.shortcutId),
-@@ -5476,6 +5514,7 @@ void ApiWrap::sendMultiPaidMedia(
+@@ -5506,6 +5544,7 @@ void ApiWrap::sendMultiPaidMedia(
  	const auto history = item->history();
  	const auto replyTo = item->replyTo();
  	const auto peer = history->peer;
@@ -28655,7 +28655,7 @@ index 0cbc7b9..0c160aa 100644
  
  	auto caption = item->originalText();
  	TextUtilities::Trim(caption);
-@@ -5528,7 +5567,7 @@ void ApiWrap::sendMultiPaidMedia(
+@@ -5558,7 +5597,7 @@ void ApiWrap::sendMultiPaidMedia(
  			MTP_long(randomId),
  			MTPReplyMarkup(),
  			sentEntities,
@@ -28664,7 +28664,7 @@ index 0cbc7b9..0c160aa 100644
  			MTP_int(options.scheduleRepeatPeriod),
  			(options.sendAs ? options.sendAs->input() : MTP_inputPeerEmpty()),
  			Data::ShortcutIdToMTP(_session, options.shortcutId),
-@@ -5612,6 +5651,7 @@ void ApiWrap::sendAlbumIfReady(not_null<SendingAlbum*> album) {
+@@ -5642,6 +5681,7 @@ void ApiWrap::sendAlbumIfReady(not_null<SendingAlbum*> album) {
  		_sendingAlbums.remove(groupId);
  		return;
  	}
@@ -28672,7 +28672,7 @@ index 0cbc7b9..0c160aa 100644
  	const auto replyTo = sample->replyTo();
  	if (const auto target = _session->data().message(replyTo.messageId)
  		; target && target->isEphemeral()) {
-@@ -5684,7 +5724,7 @@ void ApiWrap::sendAlbumIfReady(not_null<SendingAlbum*> album) {
+@@ -5714,7 +5754,7 @@ void ApiWrap::sendAlbumIfReady(not_null<SendingAlbum*> album) {
  			peer->input(),
  			Data::Histories::ReplyToPlaceholder(),
  			MTP_vector<MTPInputSingleMedia>(medias),
@@ -28682,18 +28682,18 @@ index 0cbc7b9..0c160aa 100644
  			(sendAs ? sendAs->input() : MTP_inputPeerEmpty()),
  			Data::ShortcutIdToMTP(_session, album->options.shortcutId),
 diff --git a/Telegram/SourceFiles/chat_helpers/stickers_list_widget.cpp b/Telegram/SourceFiles/chat_helpers/stickers_list_widget.cpp
-index 0dbb90a..1c20065 100644
+index 8abf0cf2..3ad42bd3 100644
 --- a/Telegram/SourceFiles/chat_helpers/stickers_list_widget.cpp
 +++ b/Telegram/SourceFiles/chat_helpers/stickers_list_widget.cpp
-@@ -40,6 +40,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
- #include "boxes/stickers_box.h"
- #include "inline_bots/inline_bot_result.h"
- #include "storage/storage_account.h"
+@@ -57,6 +57,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
+ #include "ui/painter.h"
+ #include "ui/power_saving.h"
+ #include "ui/ui_utility.h"
 +#include "lang/lang_instance.h"
- #include "lang/lang_keys.h"
- #include "dialogs/ui/dialogs_layout.h"
- #include "boxes/sticker_set_box.h"
-@@ -3049,7 +3050,9 @@ void StickersListWidget::removeFavedSticker(int section, int index) {
+ #include "window/window_session_controller.h" // GifPauseReason.
+ 
+ #include "styles/style_chat_helpers.h"
+@@ -3413,7 +3414,9 @@ void StickersListWidget::removeFavedSticker(int section, int index) {
  	clearSelection();
  	const auto &sticker = _mySets[section].stickers[index];
  	const auto document = sticker.document;
@@ -28704,7 +28704,7 @@ index 0dbb90a..1c20065 100644
  	Api::ToggleFavedSticker(
  		_show,
  		document,
-@@ -3550,7 +3553,11 @@ void StickersListWidget::refreshFavedStickers() {
+@@ -3915,7 +3918,11 @@ void StickersListWidget::refreshFavedStickers() {
  		Data::Stickers::FavedSetId,
  		nullptr,
  		(SetFlag::Official | SetFlag::Special),
@@ -28718,7 +28718,7 @@ index 0dbb90a..1c20065 100644
  		set->count,
  		externalLayout,
 diff --git a/Telegram/SourceFiles/core/application.cpp b/Telegram/SourceFiles/core/application.cpp
-index 94b64dc..fc982b7 100644
+index f77eebd5..038cf87c 100644
 --- a/Telegram/SourceFiles/core/application.cpp
 +++ b/Telegram/SourceFiles/core/application.cpp
 @@ -23,6 +23,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
@@ -28729,7 +28729,7 @@ index 94b64dc..fc982b7 100644
  #include "core/update_checker.h"
  #include "core/shortcuts.h"
  #include "core/sandbox.h"
-@@ -311,6 +312,7 @@ Application::~Application() {
+@@ -313,6 +314,7 @@ Application::~Application() {
  }
  
  void Application::run() {
@@ -28737,7 +28737,7 @@ index 94b64dc..fc982b7 100644
  	// Depends on OpenSSL on macOS, so on ThirdParty::start().
  	// Depends on notifications settings.
  	_notifications = std::make_unique<Window::Notifications::System>();
-@@ -2181,6 +2183,9 @@ void Application::startShortcuts() {
+@@ -2211,6 +2213,9 @@ void Application::startShortcuts() {
  }
  
  void Application::RegisterUrlScheme() {
@@ -28748,7 +28748,7 @@ index 94b64dc..fc982b7 100644
  		? u"-workdir \"%1\""_q.arg(cWorkingDir())
  		: QString();
 diff --git a/Telegram/SourceFiles/core/launcher.cpp b/Telegram/SourceFiles/core/launcher.cpp
-index 3e436f7..34a23b9 100644
+index 36839506..04849762 100644
 --- a/Telegram/SourceFiles/core/launcher.cpp
 +++ b/Telegram/SourceFiles/core/launcher.cpp
 @@ -7,6 +7,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
@@ -28760,7 +28760,7 @@ index 3e436f7..34a23b9 100644
  #include "platform/platform_launcher.h"
  #include "platform/platform_specific.h"
  #include "base/options.h"
-@@ -343,7 +345,8 @@ void Launcher::init() {
+@@ -340,7 +342,8 @@ void Launcher::init() {
  	prepareSettings();
  	initQtMessageLogging();
  
@@ -28770,7 +28770,7 @@ index 3e436f7..34a23b9 100644
  
  #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
  	// fallback session management is useless for tdesktop since it doesn't have
-@@ -514,6 +517,10 @@ void Launcher::prepareSettings() {
+@@ -511,6 +514,10 @@ void Launcher::prepareSettings() {
  	}
  
  	processArguments();
@@ -28783,7 +28783,7 @@ index 3e436f7..34a23b9 100644
  void Launcher::initQtMessageLogging() {
 diff --git a/Telegram/SourceFiles/core/mod_crypto.h b/Telegram/SourceFiles/core/mod_crypto.h
 new file mode 100644
-index 0000000..cb14808
+index 00000000..cb14808e
 --- /dev/null
 +++ b/Telegram/SourceFiles/core/mod_crypto.h
 @@ -0,0 +1,81 @@
@@ -28870,7 +28870,7 @@ index 0000000..cb14808
 +}
 diff --git a/Telegram/SourceFiles/core/mod_settings.h b/Telegram/SourceFiles/core/mod_settings.h
 new file mode 100644
-index 0000000..e50471f
+index 00000000..e50471f6
 --- /dev/null
 +++ b/Telegram/SourceFiles/core/mod_settings.h
 @@ -0,0 +1,81 @@
@@ -28957,7 +28957,7 @@ index 0000000..e50471f
 +} // namespace Core
 diff --git a/Telegram/SourceFiles/core/mod_update.h b/Telegram/SourceFiles/core/mod_update.h
 new file mode 100644
-index 0000000..6ba87b5
+index 00000000..422791a9
 --- /dev/null
 +++ b/Telegram/SourceFiles/core/mod_update.h
 @@ -0,0 +1,230 @@
@@ -28985,8 +28985,8 @@ index 0000000..6ba87b5
 +
 +namespace Core {
 +
-+inline constexpr auto ModVersionCode = 502;
-+inline const auto ModVersion = QStringLiteral("0.5.2");
++inline constexpr auto ModVersionCode = 503;
++inline const auto ModVersion = QStringLiteral("0.5.3");
 +
 +class ModUpdater final : public QObject {
 +public:
@@ -29066,7 +29066,7 @@ index 0000000..6ba87b5
 +
 +	QNetworkReply *get(const QUrl &url) {
 +		auto request = QNetworkRequest(url);
-+		request.setRawHeader("User-Agent", "TelegramR/0.5.2");
++		request.setRawHeader("User-Agent", "TelegramR/0.5.3");
 +		request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
 +		request.setTransferTimeout(30000);
 +		return _network.get(request);
@@ -29192,7 +29192,7 @@ index 0000000..6ba87b5
 +
 +}
 diff --git a/Telegram/SourceFiles/core/ui_integration.cpp b/Telegram/SourceFiles/core/ui_integration.cpp
-index f504a14..13b6e8e 100644
+index 7db8db95..f324766b 100644
 --- a/Telegram/SourceFiles/core/ui_integration.cpp
 +++ b/Telegram/SourceFiles/core/ui_integration.cpp
 @@ -16,6 +16,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
@@ -29229,7 +29229,7 @@ index f504a14..13b6e8e 100644
  			: Integration::createLinkHandler(data, context);
 diff --git a/Telegram/SourceFiles/data/data_mod_history.h b/Telegram/SourceFiles/data/data_mod_history.h
 new file mode 100644
-index 0000000..d051743
+index 00000000..d0517432
 --- /dev/null
 +++ b/Telegram/SourceFiles/data/data_mod_history.h
 @@ -0,0 +1,23 @@
@@ -29257,7 +29257,7 @@ index 0000000..d051743
 +}
 +}
 diff --git a/Telegram/SourceFiles/data/data_peer_values.cpp b/Telegram/SourceFiles/data/data_peer_values.cpp
-index d43652e..8479a0b 100644
+index e89caadd..9d663b68 100644
 --- a/Telegram/SourceFiles/data/data_peer_values.cpp
 +++ b/Telegram/SourceFiles/data/data_peer_values.cpp
 @@ -6,6 +6,7 @@ For license and copyright information please follow this link:
@@ -29266,8 +29266,8 @@ index d43652e..8479a0b 100644
  #include "data/data_peer_values.h"
 +#include "data/data_mod_history.h"
  
- #include "lang/lang_keys.h"
- #include "data/data_channel.h"
+ #include "base/unixtime.h"
+ #include "data/data_changes.h"
 @@ -516,6 +517,7 @@ QString OnlineText(Data::LastseenStatus status, TimeId now) {
  }
  
@@ -29285,7 +29285,7 @@ index d43652e..8479a0b 100644
  		return *special;
  	} else if (const auto common = OnlineTextCommon(user->lastseen(), now)) {
 diff --git a/Telegram/SourceFiles/data/data_session.cpp b/Telegram/SourceFiles/data/data_session.cpp
-index 9a9d1a2..8b49e5d 100644
+index 99b83fab..5b878b36 100644
 --- a/Telegram/SourceFiles/data/data_session.cpp
 +++ b/Telegram/SourceFiles/data/data_session.cpp
 @@ -6,6 +6,16 @@ For license and copyright information please follow this link:
@@ -29303,9 +29303,9 @@ index 9a9d1a2..8b49e5d 100644
 +#include <QtCore/QSettings>
 +#include "crl/crl_async.h"
  
- #include "main/main_session.h"
- #include "main/main_session_settings.h"
-@@ -1957,7 +1967,9 @@ void Session::setupUserIsContactViewer() {
+ #include "api/api_bot.h"
+ #include "api/api_premium.h"
+@@ -1960,7 +1970,9 @@ void Session::setupUserIsContactViewer() {
  	}, _lifetime);
  }
  
@@ -29316,7 +29316,7 @@ index 9a9d1a2..8b49e5d 100644
  
  template <typename Method>
  void Session::enumerateItemViews(
-@@ -3067,12 +3079,433 @@ void Session::reorderTwoPinnedChats(
+@@ -3070,12 +3082,433 @@ void Session::reorderTwoPinnedChats(
  	notifyPinnedDialogsOrderUpdated();
  }
  
@@ -29750,7 +29750,7 @@ index 9a9d1a2..8b49e5d 100644
  	existing->applySentMessage(data);
  	const auto result = (existing->mainView() != nullptr);
  	if (result) {
-@@ -3084,6 +3517,7 @@ bool Session::updateExistingMessage(const MTPDmessage &data) {
+@@ -3087,6 +3520,7 @@ bool Session::updateExistingMessage(const MTPDmessage &data) {
  	return result;
  }
  
@@ -29758,7 +29758,7 @@ index 9a9d1a2..8b49e5d 100644
  void Session::updateEditedMessage(const MTPMessage &data) {
  	const auto existing = data.match([](const MTPDmessageEmpty &)
  			-> HistoryItem* {
-@@ -3095,8 +3529,15 @@ void Session::updateEditedMessage(const MTPMessage &data) {
+@@ -3098,8 +3532,15 @@ void Session::updateEditedMessage(const MTPMessage &data) {
  		Reactions::CheckUnknownForUnread(this, data);
  		return;
  	}
@@ -29776,7 +29776,7 @@ index 9a9d1a2..8b49e5d 100644
  	}
  	data.match([](const MTPDmessageEmpty &) {
  	}, [&](const MTPDmessageService &data) {
-@@ -3104,6 +3545,14 @@ void Session::updateEditedMessage(const MTPMessage &data) {
+@@ -3107,6 +3548,14 @@ void Session::updateEditedMessage(const MTPMessage &data) {
  	}, [&](const auto &data) {
  		existing->applyEdition(HistoryMessageEdition(_session, data));
  	});
@@ -29791,7 +29791,7 @@ index 9a9d1a2..8b49e5d 100644
  }
  
  void Session::processMessages(
-@@ -3365,6 +3814,14 @@ void Session::checkFormattedDateUpdates() {
+@@ -3368,6 +3817,14 @@ void Session::checkFormattedDateUpdates() {
  	scheduleNextFormattedDateUpdate();
  }
  
@@ -29806,7 +29806,7 @@ index 9a9d1a2..8b49e5d 100644
  void Session::processMessagesDeleted(
  		PeerId peerId,
  		const QVector<MTPint> &data) {
-@@ -3380,8 +3837,10 @@ void Session::processMessagesDeleted(
+@@ -3383,8 +3840,10 @@ void Session::processMessagesDeleted(
  	for (const auto &messageId : data) {
  		const auto i = list ? list->find(messageId.v) : Messages::iterator();
  		if (list && i != list->end()) {
@@ -29819,7 +29819,7 @@ index 9a9d1a2..8b49e5d 100644
  			historiesToCheck.emplace(history);
  		} else if (affected) {
  			affected->unknownMessageDeleted(messageId.v);
-@@ -3407,6 +3866,7 @@ void Session::processNonChannelMessagesDeleted(const QVector<MTPint> &data) {
+@@ -3410,6 +3869,7 @@ void Session::processNonChannelMessagesDeleted(const QVector<MTPint> &data) {
  	for (const auto &messageId : data) {
  		if (const auto item = nonChannelMessage(messageId.v)) {
  			const auto history = item->history();
@@ -29827,7 +29827,7 @@ index 9a9d1a2..8b49e5d 100644
  			toDestroy.push_back(item);
  			historiesToCheck.emplace(history);
  		}
-@@ -3656,7 +4116,9 @@ HistoryItem *Session::addNewMessage(
+@@ -3659,7 +4119,9 @@ HistoryItem *Session::addNewMessage(
  		data,
  		localFlags,
  		type);
@@ -29838,10 +29838,10 @@ index 9a9d1a2..8b49e5d 100644
  	}
  	return result;
 diff --git a/Telegram/SourceFiles/data/data_session.h b/Telegram/SourceFiles/data/data_session.h
-index 9bb5d92..5b9d5bd 100644
+index 7e542ad1..a5389410 100644
 --- a/Telegram/SourceFiles/data/data_session.h
 +++ b/Telegram/SourceFiles/data/data_session.h
-@@ -605,6 +605,7 @@ public:
+@@ -606,6 +606,7 @@ public:
  	void processExistingMessages(
  		ChannelData *channel,
  		const MTPmessages_Messages &data);
@@ -29849,7 +29849,7 @@ index 9bb5d92..5b9d5bd 100644
  	void processNonChannelMessagesDeleted(const QVector<MTPint> &data);
  	void processMessagesDeleted(
  		PeerId peerId,
-@@ -1267,6 +1268,8 @@ private:
+@@ -1268,6 +1269,8 @@ private:
  
  	MsgId _localMessageIdCounter = StartClientMsgId;
  	std::unordered_map<PeerId, Messages> _messages;
@@ -29859,10 +29859,10 @@ index 9bb5d92..5b9d5bd 100644
  		not_null<HistoryItem*>,
  		base::flat_set<not_null<HistoryItem*>>> _dependentMessages;
 diff --git a/Telegram/SourceFiles/data/stickers/data_stickers.cpp b/Telegram/SourceFiles/data/stickers/data_stickers.cpp
-index 8e506b4..8237322 100644
+index 8d1cf69f..305794e4 100644
 --- a/Telegram/SourceFiles/data/stickers/data_stickers.cpp
 +++ b/Telegram/SourceFiles/data/stickers/data_stickers.cpp
-@@ -612,6 +612,9 @@ bool Stickers::isFaved(not_null<const DocumentData*> document) const {
+@@ -613,6 +613,9 @@ bool Stickers::isFaved(not_null<const DocumentData*> document) const {
  void Stickers::checkFavedLimit(
  		StickersSet &set,
  		std::shared_ptr<ChatHelpers::Show> show) {
@@ -29872,7 +29872,7 @@ index 8e506b4..8237322 100644
  	const auto session = &_owner->session();
  	const auto limits = Data::PremiumLimits(session);
  	if (set.stickers.size() <= limits.stickersFavedCurrent()) {
-@@ -696,6 +699,12 @@ void Stickers::setIsFaved(
+@@ -697,6 +700,12 @@ void Stickers::setIsFaved(
  		pushFavedToFront(*set, show, document, *emojiList);
  	} else if (auto list = getEmojiListFromSet(document)) {
  		pushFavedToFront(*set, show, document, *list);
@@ -29886,7 +29886,7 @@ index 8e506b4..8237322 100644
  		requestSetToPushFaved(show, document);
  		return;
 diff --git a/Telegram/SourceFiles/history/history_item.cpp b/Telegram/SourceFiles/history/history_item.cpp
-index 823e058..e605465 100644
+index e595c9bf..65c1e25b 100644
 --- a/Telegram/SourceFiles/history/history_item.cpp
 +++ b/Telegram/SourceFiles/history/history_item.cpp
 @@ -5,6 +5,7 @@ the official desktop application for the Telegram messaging service.
@@ -29897,7 +29897,7 @@ index 823e058..e605465 100644
  #include "history/history_item.h"
  
  #include "api/api_premium.h"
-@@ -4898,6 +4899,11 @@ void HistoryItem::highlightProcessDone() {
+@@ -4905,6 +4906,11 @@ void HistoryItem::highlightProcessDone() {
  }
  
  bool HistoryItem::showNotification() const {
@@ -29910,7 +29910,7 @@ index 823e058..e605465 100644
  	if (channel && !channel->amIn()) {
  		return false;
 diff --git a/Telegram/SourceFiles/history/history_item_helpers.cpp b/Telegram/SourceFiles/history/history_item_helpers.cpp
-index 024506d..dc82a81 100644
+index 8b2ec035..0249a8a9 100644
 --- a/Telegram/SourceFiles/history/history_item_helpers.cpp
 +++ b/Telegram/SourceFiles/history/history_item_helpers.cpp
 @@ -6,6 +6,7 @@ For license and copyright information please follow this link:
@@ -29921,7 +29921,7 @@ index 024506d..dc82a81 100644
  
  #include "api/api_reactions_notify_settings.h"
  #include "api/api_text_entities.h"
-@@ -629,6 +630,7 @@ bool ShouldSendSilent(
+@@ -632,6 +633,7 @@ bool ShouldSendSilent(
  		not_null<PeerData*> peer,
  		const Api::SendOptions &options) {
  	return options.silent
@@ -29930,7 +29930,7 @@ index 024506d..dc82a81 100644
  			&& peer->owner().notifySettings().silentPosts(peer))
  		|| (peer->session().supportMode()
 diff --git a/Telegram/SourceFiles/history/history_widget.cpp b/Telegram/SourceFiles/history/history_widget.cpp
-index 895fb7c..a528ffb 100644
+index 5cda0926..282f1de3 100644
 --- a/Telegram/SourceFiles/history/history_widget.cpp
 +++ b/Telegram/SourceFiles/history/history_widget.cpp
 @@ -5,6 +5,7 @@ the official desktop application for the Telegram messaging service.
@@ -29940,8 +29940,8 @@ index 895fb7c..a528ffb 100644
 +#include "core/mod_settings.h"
  #include "history/history_widget.h"
  
- #include "api/api_compose_with_ai.h"
-@@ -5045,7 +5046,9 @@ void HistoryWidget::windowShown() {
+ #include "api/api_bot.h"
+@@ -5080,7 +5081,9 @@ void HistoryWidget::windowShown() {
  }
  
  bool HistoryWidget::markingMessagesRead() const {
@@ -29953,7 +29953,7 @@ index 895fb7c..a528ffb 100644
  
  bool HistoryWidget::markingContentsRead() const {
 diff --git a/Telegram/SourceFiles/history/view/history_view_chat_section.cpp b/Telegram/SourceFiles/history/view/history_view_chat_section.cpp
-index 22d8f65..cd1b5ca 100644
+index d78bf7b4..cb1a0cf0 100644
 --- a/Telegram/SourceFiles/history/view/history_view_chat_section.cpp
 +++ b/Telegram/SourceFiles/history/view/history_view_chat_section.cpp
 @@ -5,6 +5,7 @@ the official desktop application for the Telegram messaging service.
@@ -29963,16 +29963,16 @@ index 22d8f65..cd1b5ca 100644
 +#include "core/mod_settings.h"
  #include "history/view/history_view_chat_section.h"
  
- #include "history/admin_log/history_admin_log_section.h"
-@@ -20,6 +21,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
- #include "history/view/history_view_paid_reaction_toast.h"
- #include "history/view/history_view_top_bar_widget.h"
+ #include "api/api_bot.h"
+@@ -70,6 +71,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
+ #include "history/view/history_view_pinned_section.h"
+ #include "history/view/history_view_pinned_tracker.h"
  #include "history/view/history_view_schedule_box.h"
 +#include "base/unixtime.h"
- #include "history/view/history_view_sticker_toast.h"
- #include "history/view/history_view_cursor_state.h"
  #include "history/view/history_view_scheduled_section.h"
-@@ -771,7 +773,12 @@ ChatWidget::ChatWidget(
+ #include "history/view/history_view_self_forwards_tagger.h"
+ #include "history/view/history_view_service_message.h"
+@@ -772,7 +774,12 @@ ChatWidget::ChatWidget(
  					cancelledSuggest = cancelSuggestPost();
  				}
  			}
@@ -29986,7 +29986,7 @@ index 22d8f65..cd1b5ca 100644
  				if (_topic) {
  					crl::on_main(this, [=, t = _topic] {
  						controller->showSection(
-@@ -2452,10 +2459,11 @@ void ChatWidget::send(Api::SendOptions options) {
+@@ -2476,10 +2483,11 @@ void ChatWidget::send(Api::SendOptions options) {
  	if (!options.scheduled) {
  		auto message = Api::MessageToSend(prepareSendAction(options));
  		message.textWithTags = _composeControls->getTextWithAppliedMarkdown();
@@ -30000,7 +30000,7 @@ index 22d8f65..cd1b5ca 100644
  	}
  
  	sendTextWithTags(
-@@ -5472,6 +5480,7 @@ MessagesBarData ChatWidget::listMessagesBar(
+@@ -5517,6 +5525,7 @@ MessagesBarData ChatWidget::listMessagesBar(
  			|| (migratedUnread && (inHistory || item->id > migratedTill))
  			|| (historyUnread && inHistory && item->id > historyTill);
  		if (unread
@@ -30009,28 +30009,28 @@ index 22d8f65..cd1b5ca 100644
  			&& (markLastAsRead
  				|| item->out()
 diff --git a/Telegram/SourceFiles/history/view/history_view_context_menu.cpp b/Telegram/SourceFiles/history/view/history_view_context_menu.cpp
-index 5e6d2e1..ca4c18c 100644
+index 3c729137..97959c4b 100644
 --- a/Telegram/SourceFiles/history/view/history_view_context_menu.cpp
 +++ b/Telegram/SourceFiles/history/view/history_view_context_menu.cpp
-@@ -86,6 +86,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
+@@ -49,6 +49,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
+ #include "data/data_photo_media.h"
  #include "data/data_poll.h"
- #include "data/data_forum_topic.h"
  #include "data/data_session.h"
 +#include "data/data_histories.h"
 +#include "data/data_replies_list.h"
 +#include "data/data_saved_sublist.h"
  #include "data/data_stories.h"
- #include "data/data_groups.h"
- #include "data/data_channel.h"
-@@ -105,6 +108,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
- #include "window/window_session_controller.h"
- #include "info/statistics/info_statistics_widget.h"
+ #include "data/data_user.h"
+ #include "history/view/controls/history_view_suggest_options.h"
+@@ -71,6 +74,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
+ #include "iv/editor/iv_editor_session.h"
+ #include "iv/iv_rich_message_html_export.h"
  #include "lang/lang_keys.h"
 +#include "lang/lang_instance.h"
- #include "core/application.h"
  #include "main/main_app_config.h"
  #include "main/main_session.h"
-@@ -1788,6 +1792,31 @@ void FillContextMenuItems(
+ #include "main/main_session_settings.h"
+@@ -1789,6 +1793,31 @@ void FillContextMenuItems(
  		&& Api::WhoReactedExists(item, Api::WhoReactedList::All);
  
  	AddReplyToMessageAction(result, request, list);
@@ -30063,7 +30063,7 @@ index 5e6d2e1..ca4c18c 100644
  		const auto media = item->media();
  		const auto document = media ? media->document() : nullptr;
 diff --git a/Telegram/SourceFiles/history/view/history_view_element.cpp b/Telegram/SourceFiles/history/view/history_view_element.cpp
-index c708665..03c9217 100644
+index db018492..e048d0db 100644
 --- a/Telegram/SourceFiles/history/view/history_view_element.cpp
 +++ b/Telegram/SourceFiles/history/view/history_view_element.cpp
 @@ -6,6 +6,7 @@ For license and copyright information please follow this link:
@@ -30072,9 +30072,9 @@ index c708665..03c9217 100644
  #include "history/view/history_view_element.h"
 +#include "data/data_mod_history.h"
  
- #include "apiwrap.h"
  #include "api/api_transcribes.h"
-@@ -2314,7 +2315,7 @@ void Element::setTextWithLinks(
+ #include "apiwrap.h"
+@@ -2315,7 +2316,7 @@ void Element::setTextWithLinks(
  		const auto item = data();
  		const auto &options = Ui::ItemTextOptions(item);
  		clearSpecialOnlyEmoji();
@@ -30084,7 +30084,7 @@ index c708665..03c9217 100644
  			// If server has allowed some text that we've trim-ed entirely,
  			// just replace it with something so that UI won't look buggy.
 diff --git a/Telegram/SourceFiles/history/view/history_view_list_widget.cpp b/Telegram/SourceFiles/history/view/history_view_list_widget.cpp
-index ca4a29e..6e7b8d2 100644
+index c0a62c0e..110ca862 100644
 --- a/Telegram/SourceFiles/history/view/history_view_list_widget.cpp
 +++ b/Telegram/SourceFiles/history/view/history_view_list_widget.cpp
 @@ -5,6 +5,7 @@ the official desktop application for the Telegram messaging service.
@@ -30094,8 +30094,8 @@ index ca4a29e..6e7b8d2 100644
 +#include "core/mod_settings.h"
  #include "history/view/history_view_list_widget.h"
  
- #include "history/view/history_view_about_view.h"
-@@ -3380,6 +3381,9 @@ bool ListWidget::markingContentsRead() const {
+ #include "api/api_views.h"
+@@ -3388,6 +3389,9 @@ bool ListWidget::markingContentsRead() const {
  }
  
  bool ListWidget::markingMessagesRead() const {
@@ -30106,7 +30106,7 @@ index ca4a29e..6e7b8d2 100644
  }
  
 diff --git a/Telegram/SourceFiles/history/view/history_view_message.cpp b/Telegram/SourceFiles/history/view/history_view_message.cpp
-index 7fb8d49..db1c080 100644
+index 04348b3e..123db6de 100644
 --- a/Telegram/SourceFiles/history/view/history_view_message.cpp
 +++ b/Telegram/SourceFiles/history/view/history_view_message.cpp
 @@ -6,6 +6,7 @@ For license and copyright information please follow this link:
@@ -30117,7 +30117,7 @@ index 7fb8d49..db1c080 100644
  
  #include "api/api_suggest_post.h"
  #include "api/api_transcribes.h"
-@@ -2014,6 +2015,8 @@ void Message::draw(Painter &p, const PaintContext &context) const {
+@@ -2015,6 +2016,8 @@ void Message::draw(Painter &p, const PaintContext &context) const {
  				}
  			}
  		}
@@ -30126,7 +30126,7 @@ index 7fb8d49..db1c080 100644
  		if (!richPageGaps.empty()) {
  			if (!rich->tornEdges) {
  				rich->tornEdges = std::make_unique<Ui::TornEdgeCache>();
-@@ -2035,6 +2038,7 @@ void Message::draw(Painter &p, const PaintContext &context) const {
+@@ -2036,6 +2039,7 @@ void Message::draw(Painter &p, const PaintContext &context) const {
  				});
  		}
  
@@ -30135,7 +30135,7 @@ index 7fb8d49..db1c080 100644
  		paintCommentsButton(p, inner, context);
  
 diff --git a/Telegram/SourceFiles/history/view/history_view_top_bar_widget.cpp b/Telegram/SourceFiles/history/view/history_view_top_bar_widget.cpp
-index 6a1fae9..2efb723 100644
+index 7de8ca76..2700a15d 100644
 --- a/Telegram/SourceFiles/history/view/history_view_top_bar_widget.cpp
 +++ b/Telegram/SourceFiles/history/view/history_view_top_bar_widget.cpp
 @@ -6,6 +6,7 @@ For license and copyright information please follow this link:
@@ -30144,9 +30144,9 @@ index 6a1fae9..2efb723 100644
  #include "history/view/history_view_top_bar_widget.h"
 +#include "data/data_mod_history.h"
  
- #include "history/history.h"
- #include "history/view/history_view_send_action.h"
-@@ -1937,6 +1938,10 @@ void TopBarWidget::updateOnlineDisplay() {
+ #include "api/api_chat_participants.h"
+ #include "apiwrap.h"
+@@ -1938,6 +1939,10 @@ void TopBarWidget::updateOnlineDisplay() {
  		} else {
  			text = Data::OnlineText(user, now);
  			titlePeerTextOnline = Data::OnlineTextActive(user, now);
@@ -30157,7 +30157,7 @@ index 6a1fae9..2efb723 100644
  		}
  	} else if (const auto chat = peer->asChat()) {
  		if (!chat->amIn()) {
-@@ -2035,6 +2040,9 @@ void TopBarWidget::updateOnlineDisplayTimer() {
+@@ -2036,6 +2041,9 @@ void TopBarWidget::updateOnlineDisplayTimer() {
  	const auto handleUser = [&](not_null<UserData*> user) {
  		const auto hisTimeout = Data::OnlineChangeTimeout(user, now);
  		accumulate_min(minTimeout, hisTimeout);
@@ -30168,7 +30168,7 @@ index 6a1fae9..2efb723 100644
  	if (const auto user = peer->asUser()) {
  		handleUser(user);
 diff --git a/Telegram/SourceFiles/main.cpp b/Telegram/SourceFiles/main.cpp
-index 0b0156c..489ac09 100644
+index 0b0156c5..489ac099 100644
 --- a/Telegram/SourceFiles/main.cpp
 +++ b/Telegram/SourceFiles/main.cpp
 @@ -12,6 +12,16 @@ extern "C" {
@@ -30189,7 +30189,7 @@ index 0b0156c..489ac09 100644
  	// and frees the library globals while detached background tasks can still
  	// be inside OpenSSL, so an ordinary quit can fault on a worker thread.
 diff --git a/Telegram/SourceFiles/platform/win/main_window_win.cpp b/Telegram/SourceFiles/platform/win/main_window_win.cpp
-index a873ce6..ac5dbff 100644
+index baceb0e5..56484719 100644
 --- a/Telegram/SourceFiles/platform/win/main_window_win.cpp
 +++ b/Telegram/SourceFiles/platform/win/main_window_win.cpp
 @@ -7,6 +7,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
@@ -30201,7 +30201,7 @@ index a873ce6..ac5dbff 100644
  #include "platform/platform_specific.h"
  #include "platform/platform_notifications_manager.h"
  #include "platform/win/tray_win.h"
-@@ -33,9 +35,14 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
+@@ -32,9 +34,14 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
  #include <QtWidgets/QStyleFactory>
  #include <QtWidgets/QApplication>
  #include <QtGui/QWindow>
@@ -30216,7 +30216,7 @@ index a873ce6..ac5dbff 100644
  #include <Shobjidl.h>
  #include <shellapi.h>
  #include <WtsApi32.h>
-@@ -638,13 +645,44 @@ void MainWindow::updateTaskbarAndIconCounters() {
+@@ -637,13 +644,44 @@ void MainWindow::updateTaskbarAndIconCounters() {
  		false,
  		supportMode));
  
@@ -30262,7 +30262,7 @@ index a873ce6..ac5dbff 100644
  			const auto pixmap = [&](int size) {
  				return Ui::PixmapFromImage(Window::GenerateCounterLayer(
  					Tray::CounterLayerArgs(size, counter, muted)));
-@@ -668,6 +706,29 @@ void MainWindow::initHook() {
+@@ -667,6 +705,29 @@ void MainWindow::initHook() {
  		return;
  	}
  
@@ -30293,10 +30293,10 @@ index a873ce6..ac5dbff 100644
  
  	using namespace base::Platform;
 diff --git a/Telegram/SourceFiles/platform/win/specific_win.cpp b/Telegram/SourceFiles/platform/win/specific_win.cpp
-index ba7f267..f04a661 100644
+index 3dda41eb..ae280ead 100644
 --- a/Telegram/SourceFiles/platform/win/specific_win.cpp
 +++ b/Telegram/SourceFiles/platform/win/specific_win.cpp
-@@ -439,7 +439,7 @@ std::optional<bool> IsDarkMode() {
+@@ -433,7 +433,7 @@ std::optional<bool> IsDarkMode() {
  #endif // Qt < 6.5.0
  
  bool AutostartSupported() {
@@ -30305,7 +30305,7 @@ index ba7f267..f04a661 100644
  }
  
  void AutostartRequestStateFromSystem(Fn<void(bool)> callback) {
-@@ -453,6 +453,12 @@ void AutostartRequestStateFromSystem(Fn<void(bool)> callback) {
+@@ -447,6 +447,12 @@ void AutostartRequestStateFromSystem(Fn<void(bool)> callback) {
  }
  
  void AutostartToggle(bool enabled, Fn<void(bool)> done) {
@@ -30318,7 +30318,7 @@ index ba7f267..f04a661 100644
  #ifdef OS_WIN_STORE
  	const auto requested = enabled;
  	const auto callback = [=](bool enabled) { crl::on_main([=] {
-@@ -694,6 +700,9 @@ bool OpenSystemSettings(SystemSettingsType type) {
+@@ -688,6 +694,9 @@ bool OpenSystemSettings(SystemSettingsType type) {
  }
  
  void NewVersionLaunched(int oldVersion) {
@@ -30328,7 +30328,7 @@ index ba7f267..f04a661 100644
  	if (oldVersion <= 4009009) {
  		AppUserModelId::CheckPinned();
  	}
-@@ -793,6 +802,9 @@ void LaunchMaps(const Data::LocationPoint &point, Fn<void()> fail) {
+@@ -787,6 +796,9 @@ void LaunchMaps(const Data::LocationPoint &point, Fn<void()> fail) {
  } // namespace Platform
  
  void psSendToMenu(bool send, bool silent) {
@@ -30339,7 +30339,7 @@ index ba7f267..f04a661 100644
  		send,
  		silent,
 diff --git a/Telegram/SourceFiles/platform/win/tray_win.cpp b/Telegram/SourceFiles/platform/win/tray_win.cpp
-index be54999..599e9f1 100644
+index be54999e..599e9f1c 100644
 --- a/Telegram/SourceFiles/platform/win/tray_win.cpp
 +++ b/Telegram/SourceFiles/platform/win/tray_win.cpp
 @@ -86,6 +86,30 @@ bool DarkTasbarValueValid/* = false*/;
@@ -30386,7 +30386,7 @@ index be54999..599e9f1 100644
  	_icon->updateToolTip(Core::TrayIconToolTip());
  }
 diff --git a/Telegram/SourceFiles/platform/win/windows_app_user_model_id.cpp b/Telegram/SourceFiles/platform/win/windows_app_user_model_id.cpp
-index 3d051f4..3e21864 100644
+index 3d051f4c..3e218649 100644
 --- a/Telegram/SourceFiles/platform/win/windows_app_user_model_id.cpp
 +++ b/Telegram/SourceFiles/platform/win/windows_app_user_model_id.cpp
 @@ -352,6 +352,9 @@ bool checkInstalled(QString path = {}) {
@@ -30411,10 +30411,10 @@ index 3d051f4..3e21864 100644
  	static auto CheckingInstalled = false;
  	if (CheckingInstalled) {
 diff --git a/Telegram/SourceFiles/settings/sections/settings_advanced.cpp b/Telegram/SourceFiles/settings/sections/settings_advanced.cpp
-index 9e853d8..51f0321 100644
+index d4dcbe2f..971d393d 100644
 --- a/Telegram/SourceFiles/settings/sections/settings_advanced.cpp
 +++ b/Telegram/SourceFiles/settings/sections/settings_advanced.cpp
-@@ -31,6 +31,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
+@@ -29,6 +29,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
  #include "info/downloads/info_downloads_widget.h"
  #include "info/info_memento.h"
  #include "lang/lang_keys.h"
@@ -30423,7 +30423,7 @@ index 9e853d8..51f0321 100644
  #include "main/main_domain.h"
  #include "main/main_session.h"
 diff --git a/Telegram/SourceFiles/storage/storage_account.cpp b/Telegram/SourceFiles/storage/storage_account.cpp
-index afe6f61..8b348b3 100644
+index 8d5581f3..4f5e19fe 100644
 --- a/Telegram/SourceFiles/storage/storage_account.cpp
 +++ b/Telegram/SourceFiles/storage/storage_account.cpp
 @@ -55,6 +55,7 @@ constexpr auto kMaxSavedPlaybackPositions = 256;
@@ -30510,10 +30510,10 @@ index afe6f61..8b348b3 100644
  	if (readingFlags && outOrder) {
  		for (const auto setId : std::as_const(*outOrder)) {
 diff --git a/Telegram/SourceFiles/window/main_window.cpp b/Telegram/SourceFiles/window/main_window.cpp
-index 62f8c79..c967aa1 100644
+index 86c74d01..e19745a4 100644
 --- a/Telegram/SourceFiles/window/main_window.cpp
 +++ b/Telegram/SourceFiles/window/main_window.cpp
-@@ -910,7 +910,9 @@ void MainWindow::updateTitle() {
+@@ -967,7 +967,9 @@ void MainWindow::updateTitle() {
  		return;
  	}
  
@@ -30525,7 +30525,7 @@ index 62f8c79..c967aa1 100644
  	const auto locked = Core::App().passcodeLocked();
  	const auto counter = settings.hideTotalUnread
 diff --git a/Telegram/SourceFiles/window/window_main_menu.cpp b/Telegram/SourceFiles/window/window_main_menu.cpp
-index 5611217..65aa25b 100644
+index 86fd3413..928066d5 100644
 --- a/Telegram/SourceFiles/window/window_main_menu.cpp
 +++ b/Telegram/SourceFiles/window/window_main_menu.cpp
 @@ -9,6 +9,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
@@ -30535,9 +30535,9 @@ index 5611217..65aa25b 100644
 +#include "base/unixtime.h"
  #include "base/qt_signal_producer.h"
  #include "boxes/about_box.h"
- #include "core/update_channel.h"
-@@ -34,6 +35,26 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
- #include "info/stories/info_stories_widget.h"
+ #include "boxes/contacts_box.h"
+@@ -33,6 +34,26 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
+ #include "info/info_memento.h"
  #include "lang/lang_keys.h"
  #include "main/main_account.h"
 +#include "api/api_updates.h"
@@ -30576,15 +30576,16 @@ index 5611217..65aa25b 100644
  #include "ui/chat/chat_theme.h"
  #include "ui/controls/swipe_handler.h"
  #include "ui/controls/userpic_button.h"
-@@ -71,6 +98,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
+@@ -71,7 +98,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
  #include "window/window_main_menu_helpers.h"
  #include "window/window_peer_menu.h"
  #include "window/window_session_controller.h"
+-
 +#include "styles/style_chat_style.h"
  #include "styles/style_chat.h" // popupMenuExpandedSeparator
  #include "styles/style_menu_icons.h"
  #include "styles/style_settings.h"
-@@ -87,6 +115,198 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
+@@ -88,6 +115,198 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
  namespace Window {
  namespace {
  
@@ -30783,7 +30784,7 @@ index 5611217..65aa25b 100644
  constexpr auto kPlayStatusLimit = 2;
  
  [[nodiscard]] bool CanCheckSpecialEvent() {
-@@ -388,7 +608,7 @@ MainMenu::MainMenu(
+@@ -389,7 +608,7 @@ MainMenu::MainMenu(
  	parentResized();
  
  	_telegram->setMarkedText(tr::link(
@@ -30792,7 +30793,7 @@ index 5611217..65aa25b 100644
  		u"https://desktop.telegram.org"_q));
  	_telegram->setLinksTrusted();
  	// The canary version is too long for the "Version {version}" form.
-@@ -774,6 +994,235 @@ void MainMenu::setupMenu() {
+@@ -775,6 +994,235 @@ void MainMenu::setupMenu() {
  		controller->showSettings();
  	});
  
@@ -31029,10 +31030,10 @@ index 5611217..65aa25b 100644
  		tr::lng_menu_night_mode(),
  		{ &st::menuIconNightMode }
 diff --git a/Telegram/SourceFiles/window/window_peer_menu.cpp b/Telegram/SourceFiles/window/window_peer_menu.cpp
-index 461532a..a2be2c9 100644
+index 4f7aa77c..a42fe8d3 100644
 --- a/Telegram/SourceFiles/window/window_peer_menu.cpp
 +++ b/Telegram/SourceFiles/window/window_peer_menu.cpp
-@@ -1936,6 +1936,11 @@ void Filler::fillContextMenuActions() {
+@@ -1965,6 +1965,11 @@ void Filler::fillContextMenuActions() {
  }
  
  void Filler::fillHistoryActions() {
@@ -31044,7 +31045,7 @@ index 461532a..a2be2c9 100644
  	addToggleMuteSubmenu(true);
  	addCreateTopic();
  	addInfo();
-@@ -1990,6 +1995,11 @@ void Filler::fillProfileActions() {
+@@ -2023,6 +2028,11 @@ void Filler::fillProfileActions() {
  
  void Filler::fillRepliesActions() {
  	if (_topic) {
@@ -31057,10 +31058,10 @@ index 461532a..a2be2c9 100644
  		addManageTopic();
  	}
 diff --git a/Telegram/build/prepare/prepare.py b/Telegram/build/prepare/prepare.py
-index cae06a0..5e558ed 100644
+index d71ecbf2..f14b0255 100644
 --- a/Telegram/build/prepare/prepare.py
 +++ b/Telegram/build/prepare/prepare.py
-@@ -465,7 +465,7 @@ def runStages():
+@@ -463,7 +463,7 @@ def runStages():
          prefix = '[' + str(index) + '/' + str(count) + '](' + stage['location'] + '/' + stage['name'] + version + ')'
          print(prefix + ': ', end = '', flush=True)
          stage['key'] = computeCacheKey(stage)
@@ -31069,7 +31070,7 @@ index cae06a0..5e558ed 100644
          checkResult = 'Forced' if len(onlyStages) > 0 else checkCacheKey(stage)
          if checkResult == 'Good':
              print('SKIPPING')
-@@ -578,7 +578,11 @@ win:
+@@ -576,7 +576,11 @@ win:
  stage('jom', """
  win:
      powershell -Command "iwr -OutFile ./jom.zip https://master.qt.io/official_releases/jom/jom_1_1_3.zip"
@@ -31082,7 +31083,7 @@ index cae06a0..5e558ed 100644
      del jom.zip
  """, 'ThirdParty')
  
-@@ -718,7 +722,8 @@ mac:
+@@ -716,7 +720,8 @@ mac:
  """)
  
  stage('openssl3', """
@@ -31128,18 +31129,7 @@ index cae06a0..5e558ed 100644
  depends:patches/libvpx/*.patch
      cd libvpx
      git checkout v1.14.1
-@@ -1187,7 +1196,9 @@ stage('regex', """
- """)
- 
- stage('ffmpeg', """
--    git clone -b n8.1.3 https://github.com/FFmpeg/FFmpeg.git ffmpeg
-+    mkdir ffmpeg
-+    tar.exe -xf "%LIBS_DIR%/../../ffmpeg-n8.1.3.tar.gz" -C ffmpeg --strip-components 1
-+    if errorlevel 1 exit /b 1
-     cd ffmpeg
- depends:patches/ffmpeg/*.patch
- win:
-@@ -1469,12 +1480,12 @@ mac:
+@@ -1460,12 +1469,12 @@ mac:
  if 'build-stackwalk' in options:
      stage('stackwalk', """
  mac:
@@ -31155,7 +31145,7 @@ index cae06a0..5e558ed 100644
      git clone https://chromium.googlesource.com/linux-syscall-support src/third_party/lss
      cd src/third_party/lss
      git checkout e1e7b0ad8e
-@@ -1509,12 +1520,12 @@ release:
+@@ -1500,12 +1509,12 @@ release:
  """
  
  stage('breakpad', """
@@ -31171,17 +31161,18 @@ index cae06a0..5e558ed 100644
  win:
      SET "PYTHONUTF8=1"
      SET "FolderPostfix="
-@@ -1533,9 +1544,6 @@ depends:python/Scripts/activate.bat
+@@ -1524,10 +1533,6 @@ depends:python/Scripts/activate.bat
      ninja -C out/Debug%FolderPostfix% common crash_generation_client exception_handler
  release:
      ninja -C out/Release%FolderPostfix% common crash_generation_client exception_handler
 -    cd tools\\windows\\dump_syms
 -    gyp dump_syms.gyp --format=msvs
--    msbuild -m dump_syms.vcxproj /property:Configuration=Release /property:Platform="x64" %ToolsetProp%
+-    # dump_syms requires ATL; not used by Telegram.
+-    if not "%SKIP_DUMPSYMS%"=="1" msbuild -m dump_syms.vcxproj /property:Configuration=Release /property:Platform="x64" %ToolsetProp%
  win:
      deactivate
  mac:
-@@ -1976,9 +1984,11 @@ mac:
+@@ -1869,9 +1874,11 @@ release:
  """)
  
  stage('tde2e', """
